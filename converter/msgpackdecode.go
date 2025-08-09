@@ -1,6 +1,7 @@
 package converter
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/anti-raid/legacybackupconverter/iblfile"
@@ -14,7 +15,7 @@ func readMsgpackSection[T any](f *iblfile.AutoEncryptedFile_FullFile, name strin
 		return nil, fmt.Errorf("failed to get section %s: %w", name, err)
 	}
 
-	dec := msgpack.NewDecoder(section)
+	dec := msgpack.NewDecoder(bytes.NewReader(section.Bytes()))
 	dec.UseInternedStrings(true)
 	dec.SetCustomStructTag("json")
 
