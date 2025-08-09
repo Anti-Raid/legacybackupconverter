@@ -139,7 +139,9 @@ func ConvertFile(data []byte, password string) ([]byte, error) {
 			if msg.Message == nil {
 				continue // Skip nil messages
 			}
-			messagesList = append(messagesList, *msg.Message)
+			msg := *msg.Message
+			msg.Attachments = nil // Remove attachments as they are not needed in the new spec
+			messagesList = append(messagesList, msg)
 		}
 
 		if len(messagesList) == 0 {
@@ -220,7 +222,7 @@ func ConvertFile(data []byte, password string) ([]byte, error) {
 	}
 
 	// Write guild data
-	err = tarfile.WriteJsonSection(coreBackupData, "core.json")
+	err = tarfile.WriteJsonGzSection(coreBackupData, "core.json.gz")
 	if err != nil {
 		return nil, fmt.Errorf("failed to write core backup data: %w", err)
 	}

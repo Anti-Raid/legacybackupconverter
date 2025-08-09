@@ -3,6 +3,7 @@ package converter
 import (
 	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 )
 
@@ -53,7 +54,7 @@ func (f *TarFile) WriteSection(buf *bytes.Buffer, name string) error {
 }
 
 // Adds a section to a file with json file format
-func (f *TarFile) WriteJsonSection(i any, name string) error {
+func (f *TarFile) WriteJsonGzSection(i any, name string) error {
 	buf := bytes.NewBuffer([]byte{})
 
 	err := json.NewEncoder(buf).Encode(i)
@@ -62,7 +63,18 @@ func (f *TarFile) WriteJsonSection(i any, name string) error {
 		return err
 	}
 
-	return f.WriteSection(buf, name)
+	// Gzip the buffer
+	gzippedBuf := bytes.NewBuffer([]byte{})
+	gzWriter := gzip.NewWriter(gzippedBuf)
+	_, err = gzWriter.Write(buf.Bytes())
+	if err != nil {
+		return err
+	}
+	err = gzWriter.Close()
+	if err != nil {
+		return err
+	}
+	return f.WriteSection(gzippedBuf, name)
 }
 
 func (f *TarFile) Build() (*bytes.Buffer, error) {
